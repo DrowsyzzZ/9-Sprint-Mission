@@ -1,48 +1,52 @@
 import { useState } from "react";
 import plusIcon from "../assets/image/ic_plus.svg";
 import deleteIcon from "../assets/image/ic_delete.svg";
+import InputField from "../components/InputField";
+import TagInput from "../components/TagInput";
 
 export default function Additems() {
-  const [inputName, setInputName] = useState("");
-  const [inputDescription, setInputDescription] = useState("");
-  const [inputPrice, setInputPrice] = useState("");
-  const [inputTag, setInputTag] = useState("");
+  const [inputFields, setInputFields] = useState({
+    inputName: "",
+    inputDescription: "",
+    inputPrice: "",
+    inputTag: "",
+  });
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState(false);
   const [tags, setTags] = useState([]);
 
+  const handleInputChange = (e) => {
+    const { id, value } = e.target;
+    setInputFields((prev) => ({ ...prev, [id]: value }));
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
 
-    // if (file && !imagePreview) {
-    //   const imageUrl = URL.createObjectURL(file);
-    //   setImagePreview(imageUrl);
-    // }
-
     if (file && !imagePreview) {
-      const imageUrl = URL.createObjectURL(file);
-      setImagePreview(imageUrl);
+      setImagePreview(URL.createObjectURL(file));
+      setError(false);
     } else {
       setError(true);
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && inputTag.trim()) {
-      setTags([...tags, `#${inputTag}`]);
-      setInputTag("");
+    if (e.key === "Enter" && inputFields.inputTag.trim()) {
+      setTags([...tags, `#${inputFields.inputTag}`]);
+      setInputFields((prev) => ({ ...prev, inputTag: "" }));
+      // console.log()
     }
   };
 
   const handleDelete = (indexToDelte) => {
-    const nextTags = tags.filter((_, index) => index !== indexToDelte);
-    setTags(nextTags);
+    setTags(tags.filter((_, index) => index !== indexToDelte));
   };
 
   const isFormValid = !(
-    inputName &&
-    inputDescription &&
-    inputPrice &&
+    inputFields.inputName &&
+    inputFields.inputDescription &&
+    inputFields.inputPrice &&
     tags.length > 0
   );
 
@@ -71,7 +75,6 @@ export default function Additems() {
           onChange={handleFileChange}
           className="hidden"
           placeholder="이미지 등록"
-          // disabled={!!imagePreview}
         />
         <div className="flex gap-[10px] PC:gap-6">
           <label
@@ -113,63 +116,51 @@ export default function Additems() {
         )}
       </div>
 
-      <div>
-        <label htmlFor="productName" className="text-2lg font-bold">
-          상품명
-        </label>
-        <input
-          id="productName"
-          type="text"
-          value={inputName}
-          onChange={(e) => setInputName(e.target.value)}
-          className="input-style"
-          placeholder="상품명을 입력해주세요"
-        />
-      </div>
+      <InputField
+        label="상품명"
+        id="inputName"
+        value={inputFields.inputName}
+        onChange={handleInputChange}
+        placeholder="상품명을 입력해주세요"
+      />
 
-      <div>
-        <label htmlFor="productDescription" className="text-2lg font-bold">
-          상품 소개
-        </label>
-        <textarea
-          id="productDescription"
-          value={inputDescription}
-          onChange={(e) => setInputDescription(e.target.value)}
-          className="input-style h-[282px]"
-          placeholder="상품 소개를 입력해주세요"
-        />
-      </div>
+      <InputField
+        label="상품 소개"
+        id="inputDescription"
+        value={inputFields.inputDescription}
+        onChange={handleInputChange}
+        placeholder="상품 소개를 입력해주세요"
+        isTextArea
+      />
 
-      <div>
-        <label htmlFor="productPrice" className="text-2lg font-bold">
-          판매가격
-        </label>
-        <input
-          id="productPrice"
-          type="text"
-          value={inputPrice ? Number(inputPrice).toLocaleString() : ""}
-          onChange={(e) => {
-            setInputPrice(Number(e.target.value.replaceAll(",", "")));
-          }}
-          className="input-style"
-          placeholder="판매가격을 입력해주세요"
-        />
-      </div>
+      <InputField
+        label="판매가격"
+        id="inputPrice"
+        value={
+          inputFields.inputPrice !== ""
+            ? inputFields.inputPrice.toLocaleString()
+            : ""
+        }
+        onChange={(e) => {
+          const rawValue = e.target.value.replaceAll(",", ""); // 콤마 제거
+          if (!isNaN(rawValue) || rawValue === "") {
+            // 숫자인 경우만 업데이트
+            setInputFields({
+              ...inputFields,
+              inputPrice: rawValue === "" ? "" : Number(rawValue),
+            });
+          }
+        }}
+        placeholder="판매가격을 입력해주세요"
+      />
 
-      <div>
-        <label htmlFor="productTag" className="text-2lg font-bold">
-          태그
-        </label>
-        <input
-          id="productTag"
-          type="text"
-          value={inputTag}
-          onChange={(e) => setInputTag(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="input-style"
-          placeholder="태그를 입력해주세요"
-        />
-      </div>
+      <TagInput
+        inputTag={inputFields.inputTag}
+        setInputTag={(value) =>
+          setInputFields((prev) => ({ ...prev, inputTag: value }))
+        }
+        handleKeyDown={handleKeyDown}
+      />
       <div className="flex gap-3 flex-wrap">
         {tags.map((tag, index) => (
           <div

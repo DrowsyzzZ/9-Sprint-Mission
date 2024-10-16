@@ -43,8 +43,6 @@ export default function Pagination({
     }
   }, [page, setPage, totalPage]);
 
-  console.log(`page:${page}, totalPage:${totalPage}`);
-
   return (
     <div className="flex gap-1 text-gray-500 text-center justify-center mt-[40px] PC:mt-[43px] text-lg font-semibold">
       <button
